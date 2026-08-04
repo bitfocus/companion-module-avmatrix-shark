@@ -1,18 +1,18 @@
 {
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"type": "connection",
-	"id": "your-module-name",
-	"name": "your-module-name",
-	"shortname": "module-shortname",
-	"description": "A short one line description of your module",
+	"id": "avmatrix-shark",
+	"name": "avmatrix-shark",
+	"shortname": "avmatrix-shark",
+	"description": "Companion module for AVMATRIX products",
 	"version": "0.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-module-your-module-name.git",
-	"bugs": "https://github.com/bitfocus/companion-module-your-module-name/issues",
+	"repository": "git+https://github.com/bitfocus/companion-module-avmatrix-shark.git",
+	"bugs": "https://github.com/bitfocus/companion-module-avmatrix-shark/issues",
 	"maintainers": [
 		{
-			"name": "Your name",
-			"email": "Your email"
+			"name": "AVMATRIX-CN",
+			"email": "avmatrix@sina.com"
 		}
 	],
 	"runtime": {
@@ -22,7 +22,7 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"legacyIds": [],
-	"manufacturer": "Your company",
-	"products": ["Your product"],
-	"keywords": []
+	"manufacturer": "AVMATRIX",
+	"products": ["Shark_Series"],
+	"keywords": ["AVMATRIX", "SHARK"]
 }

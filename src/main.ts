@@ -1,45 +1,59 @@
 import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
-import { GetConfigFields, type ModuleConfig } from './config.js'
-import { UpdateVariableDefinitions, type VariablesSchema } from './variables.js'
+import { GetConfigFields, type ModuleConfig, type Secrets } from './config.js'
 import { UpgradeScripts } from './upgrades.js'
-import { UpdateActions, type ActionsSchema } from './actions.js'
-import { UpdateFeedbacks, type FeedbacksSchema } from './feedbacks.js'
-import { UpdatePresets } from './presets.js'
+import type { DeviceModel } from './models/types.js'
+import { Models } from './models/index.js'
 
 export type ModuleSchema = {
 	config: ModuleConfig
-	secrets: undefined
-	actions: ActionsSchema
-	feedbacks: FeedbacksSchema
-	variables: VariablesSchema
+	secrets: Secrets
+	actions: any
+	feedbacks: any
+	variables: any
 }
 
 export { UpgradeScripts }
 
 export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	config!: ModuleConfig // Setup in init()
+	secrets!: Secrets // Setup in init()
+	model!: DeviceModel
+	tbarAni: any
+	volAni: any
 
 	constructor(internal: unknown) {
 		super(internal)
 	}
 
-	async init(config: ModuleConfig): Promise<void> {
-		this.config = config
+	async init(config: ModuleConfig, _isFirstInit: boolean, secrets: Secrets): Promise<void> {
+		try {
+			this.config = config
+			this.secrets = secrets
+			this.updateStatus(InstanceStatus.Disconnected)
+			this.model = Models[config.model](this)
 
-		this.updateStatus(InstanceStatus.Ok)
+			if (!this.model) {
+				throw new Error(`Unsupported model ${config.model}`)
+			}
 
-		this.updateActions() // export actions
-		this.updateFeedbacks() // export feedbacks
-		this.updatePresets() // export Presets
-		this.updateVariableDefinitions() // export variable definitions
+			this.updateActions() // export actions
+			this.updateFeedbacks() // export feedbacks
+			this.updatePresets() // export Presets
+			this.updateVariableDefinitions() // export variable definitions
+			void this.model.api.connect()
+		} catch (e: any) {
+			this.log('error', e)
+		}
 	}
 	// When module gets deleted
 	async destroy(): Promise<void> {
 		this.log('debug', 'destroy')
+		this.updateStatus(InstanceStatus.Disconnected)
+		void this.model.api.disconnect()
 	}
 
-	async configUpdated(config: ModuleConfig): Promise<void> {
-		this.config = config
+	async configUpdated(config: ModuleConfig, secrets: Secrets): Promise<void> {
+		await this.init(config, false, secrets)
 	}
 
 	// Return config fields for web config
@@ -48,18 +62,19 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	}
 
 	updateActions(): void {
-		UpdateActions(this)
+		this.setActionDefinitions(this.model.getActionsDefinitions(this))
 	}
 
 	updateFeedbacks(): void {
-		UpdateFeedbacks(this)
+		this.setFeedbackDefinitions(this.model.getFeedbacksDefinitions(this))
 	}
 
 	updatePresets(): void {
-		UpdatePresets(this)
+		const [structure, presets] = this.model.getPresetsDefinitions(this)
+		this.setPresetDefinitions(structure, presets)
 	}
 
 	updateVariableDefinitions(): void {
-		UpdateVariableDefinitions(this)
+		this.setVariableDefinitions(this.model.getVariableDefinitions(this))
 	}
 }
