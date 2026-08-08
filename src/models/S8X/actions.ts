@@ -446,7 +446,7 @@ export function getActionsDefinitions(self: ModuleInstance): CompanionActionDefi
 				const [channel, key] = (event.options.channel as string).split('.') as [keyof Audio, string]
 				const vol = s8xapi.audio?.[channel]?.[key as keyof Audio[typeof channel]]
 				if (vol == undefined) {
-					console.warn('Volume is undefined')
+					self.log('error', 'Volume is undefined')
 					return
 				}
 				if (event.options.press) {

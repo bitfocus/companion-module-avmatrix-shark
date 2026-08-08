@@ -22,7 +22,7 @@ function buildAudioEnable(
 		type: 'simple',
 		name: name,
 		style: {
-			text: '`' + title(name) + SEPARATOR + '${' + '$(module:audio)' + `['${key}']` + `['${volume}']` + '}`',
+			text: '`' + title(name) + SEPARATOR + '${$' + `(module:${key}_${volume})` + '}`',
 			textExpression: true,
 			size: options.size,
 			color: 0xffffff,
@@ -46,7 +46,7 @@ function buildAudioEnable(
 		],
 		feedbacks: [
 			{
-				feedbackId: 'AudioEnable', // 引用反馈
+				feedbackId: 'AudioEnable',
 				options: {
 					channel: `${key}.${enable}`,
 					enable: true,
@@ -321,7 +321,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 				],
 				feedbacks: [
 					{
-						feedbackId: g, // 引用反馈
+						feedbackId: g,
 						options: {
 							num: i,
 						},
@@ -333,44 +333,6 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 			}
 			i++
 		}
-	}
-	presets['AUX'] = {
-		type: 'simple',
-		name: 'AUX',
-		style: {
-			text: 'AUX',
-			size: '24',
-			color: 0xffffff,
-			bgcolor: 0x000000,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				up: [
-					{
-						actionId: 'MUTE',
-						options: {
-							enable: true,
-							toggle: true,
-						},
-					},
-				],
-				down: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: 'MUTE', // 引用反馈
-				options: {
-					enable: true,
-				},
-				style: {
-					text: 'MUTE',
-
-					bgcolor: 0xff0000,
-				},
-			},
-		],
 	}
 	presets['MUTE'] = {
 		type: 'simple',
@@ -398,7 +360,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'MUTE', // 引用反馈
+				feedbackId: 'MUTE',
 				options: {
 					enable: true,
 				},
@@ -438,7 +400,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'FTB', // 引用反馈
+				feedbackId: 'FTB',
 				options: {
 					enable: true,
 				},
@@ -576,7 +538,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		type: 'simple',
 		name: 'Postion',
 		style: {
-			text: "$(module:keyboard)['TBAR']",
+			text: '$(module:TBAR)',
 			textExpression: true,
 			size: 'auto',
 			color: 0xffffff,
@@ -595,7 +557,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		type: 'simple',
 		name: 'Postion Percent',
 		style: {
-			text: "`${round($(module:keyboard)['TBAR'] /255 * 100)}%`",
+			text: '`${round($(module:TBAR) /255 * 100)}%`',
 			textExpression: true,
 			size: 'auto',
 			color: 0xffffff,
@@ -635,7 +597,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'AUX', // 引用反馈
+				feedbackId: 'AUX',
 				options: {
 					input: 0,
 				},
@@ -670,7 +632,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'AUX', // 引用反馈
+				feedbackId: 'AUX',
 				options: {
 					input: 1,
 				},
@@ -705,7 +667,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'AUX', // 引用反馈
+				feedbackId: 'AUX',
 				options: {
 					input: 2,
 				},
@@ -740,7 +702,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'AUX', // 引用反馈
+				feedbackId: 'AUX',
 				options: {
 					input: 3,
 				},
@@ -775,7 +737,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'WIPE1', // 引用反馈
+				feedbackId: 'WIPE1',
 				options: {
 					enable: true,
 				},
@@ -810,7 +772,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'WIPE2', // 引用反馈
+				feedbackId: 'WIPE2',
 				options: {
 					enable: true,
 				},
@@ -845,7 +807,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'WIPE3', // 引用反馈
+				feedbackId: 'WIPE3',
 				options: {
 					enable: true,
 				},
@@ -881,7 +843,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'DIP', // 引用反馈
+				feedbackId: 'DIP',
 				options: {
 					enable: true,
 				},
@@ -917,7 +879,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'MIX', // 引用反馈
+				feedbackId: 'MIX',
 				options: {
 					enable: true,
 				},
@@ -953,7 +915,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 		],
 		feedbacks: [
 			{
-				feedbackId: 'INV', // 引用反馈
+				feedbackId: 'INV',
 				options: {
 					enable: true,
 				},
@@ -1015,7 +977,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 				],
 				feedbacks: [
 					{
-						feedbackId: 'OnAir', // 引用反馈
+						feedbackId: 'OnAir',
 						options: {
 							name: i.id,
 							status: j.id,
@@ -1059,7 +1021,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 			],
 			feedbacks: [
 				{
-					feedbackId: 'AudioAFV', // 引用反馈
+					feedbackId: 'AudioAFV',
 					options: {
 						channel: `AuView${i}.AFV`,
 						enable: true,
@@ -1120,7 +1082,7 @@ export function getPresetsDefinitions(_self: ModuleInstance): [CompanionPresetSe
 			],
 			feedbacks: [
 				{
-					feedbackId: 'StreamEnable', // 引用反馈
+					feedbackId: 'StreamEnable',
 					options: {
 						channel: `StreamSettings${i}.StreamingEnable`,
 						enable: true,

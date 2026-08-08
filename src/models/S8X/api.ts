@@ -3,6 +3,9 @@ import type ModuleInstance from '../../main.js'
 import type { Audio, Codec, Keyboard, Resp, Token } from './variables.js'
 import { type BaseDeviceApi } from '../types.js'
 
+function isError(err: unknown): err is Error {
+	return err instanceof Error
+}
 export class S8XApi implements BaseDeviceApi {
 	private instance: ModuleInstance
 	token: string = ''
@@ -26,10 +29,9 @@ export class S8XApi implements BaseDeviceApi {
 			},
 			method: 'GET',
 		})
-		// console.log(res)
 		if (res.status == 401) {
-			await this.login()
-			return await this.get(module)
+			this.instance.updateStatus(InstanceStatus.AuthenticationFailure)
+			throw new Error('Authentication failed (401)')
 		}
 		return res
 	}
@@ -43,10 +45,10 @@ export class S8XApi implements BaseDeviceApi {
 			method: 'POST',
 			body: JSON.stringify(data),
 		})
-		// console.log(res)
 		if (res.status == 401) {
-			await this.login()
-			return await this.post(module, data)
+			//
+			this.instance.updateStatus(InstanceStatus.AuthenticationFailure)
+			throw new Error('Authentication failed (401)')
 		}
 		return res
 	}
@@ -58,11 +60,13 @@ export class S8XApi implements BaseDeviceApi {
 			await this.login()
 			await this.sync()
 			void this.connectSSE()
-		} catch (e) {
-			this.instance.updateStatus(InstanceStatus.ConnectionFailure, '❌' + String(e))
-			console.log(e)
+		} catch (e: unknown) {
+			const errorMessage = isError(e) ? e.message : String(e)
+
+			this.instance.updateStatus(InstanceStatus.ConnectionFailure, '❌' + errorMessage)
+			this.instance.log('error', errorMessage)
 			// if (this.instance.config.retry) {
-			// console.log('warn', 'Reconnect in 5 seconds')
+			// this.instance.log('warn', 'Reconnect in 5 seconds')
 			// await new Promise((r) => setTimeout(r, 5000))
 			// void this.connect()
 			// }
@@ -89,36 +93,39 @@ export class S8XApi implements BaseDeviceApi {
 		})
 		const data = (await res.json()) as Resp
 		if (data.code != 200) {
-			throw Error(data.message)
+			throw new Error(data.message || 'Login failed')
 		}
 		const token = data.data as Token
 		this.token = token.token
 	}
 
 	async logout(): Promise<void> {
-		//
-		const res = await fetch(this.url() + `/user/logout`, {
-			headers: {
-				Authorization: `Bearer ${this.token}`,
-				'Content-Type': 'application/json',
-			},
-			method: 'GET',
-		})
-		const data = (await res.json()) as Resp
-		if (data.code != 200) {
-			throw Error(data.message)
+		if (!this.token) return
+		try {
+			const res = await fetch(this.url() + `/user/logout`, {
+				headers: {
+					Authorization: `Bearer ${this.token}`,
+					'Content-Type': 'application/json',
+				},
+				method: 'GET',
+			})
+			const data = (await res.json()) as Resp
+			if (data.code != 200) {
+				this.instance.log('warn', `Logout failed: ${data.message}`)
+			}
+		} catch (e: unknown) {
+			this.instance.log('warn', `Logout error: ${isError(e) ? e.message : String(e)}`)
+		} finally {
+			this.token = ''
 		}
-		this.instance.setVariableValues({
-			token: '',
-		})
 	}
 
 	async sync(): Promise<void> {
 		try {
 			await Promise.all([this.loadKeyboard(), this.loadCodec(), this.loadAudio()])
 			this.instance.checkAllFeedbacks()
-		} catch (e) {
-			console.error('load', e)
+		} catch (e: unknown) {
+			this.instance.log('error', `Sync failed: ${isError(e) ? e.message : String(e)}`)
 		}
 	}
 
@@ -126,9 +133,7 @@ export class S8XApi implements BaseDeviceApi {
 		const res = await this.get('Keyboard')
 		this.keyboard = (await res.json()) as Keyboard
 		this.instance.setVariableValues({
-			keyboard: {
-				TBAR: this.keyboard.TBAR,
-			},
+			TBAR: this.keyboard.TBAR,
 		})
 		return res
 	}
@@ -158,46 +163,20 @@ export class S8XApi implements BaseDeviceApi {
 		const res = await this.get('Audio')
 		this.audio = (await res.json()) as Audio
 		this.instance.setVariableValues({
-			audio: {
-				AuView1: {
-					Volume: this.audio.AuView1.Volume,
-				},
-				AuView2: {
-					Volume: this.audio.AuView2.Volume,
-				},
-				AuView3: {
-					Volume: this.audio.AuView3.Volume,
-				},
-				AuView4: {
-					Volume: this.audio.AuView4.Volume,
-				},
-				AuView5: {
-					Volume: this.audio.AuView5.Volume,
-				},
-				AuView6: {
-					Volume: this.audio.AuView6.Volume,
-				},
-				AuView7: {
-					Volume: this.audio.AuView7.Volume,
-				},
-				AuView8: {
-					Volume: this.audio.AuView8.Volume,
-				},
-				Earphone: {
-					Volume: this.audio.Earphone.Volume,
-				},
-				LINEIN: {
-					Volume: this.audio.LINEIN.Volume,
-				},
-				MICorXLR: {
-					MIC1Volume: this.audio.MICorXLR.MIC1Volume,
-					MIC2Volume: this.audio.MICorXLR.MIC2Volume,
-					XLRVolume: this.audio.MICorXLR.XLRVolume,
-				},
-				PGMOUT: {
-					Volume: this.audio.PGMOUT.Volume,
-				},
-			},
+			AuView1_Volume: this.audio.AuView1.Volume,
+			AuView2_Volume: this.audio.AuView2.Volume,
+			AuView3_Volume: this.audio.AuView3.Volume,
+			AuView4_Volume: this.audio.AuView4.Volume,
+			AuView5_Volume: this.audio.AuView5.Volume,
+			AuView6_Volume: this.audio.AuView6.Volume,
+			AuView7_Volume: this.audio.AuView7.Volume,
+			AuView8_Volume: this.audio.AuView8.Volume,
+			Earphone_Volume: this.audio.Earphone.Volume,
+			LINEIN_Volume: this.audio.LINEIN.Volume,
+			MICorXLR_MIC1Volume: this.audio.MICorXLR.MIC1Volume,
+			MICorXLR_MIC2Volume: this.audio.MICorXLR.MIC2Volume,
+			MICorXLR_XLRVolume: this.audio.MICorXLR.XLRVolume,
+			PGMOUT_Volume: this.audio.PGMOUT.Volume,
 		})
 		return res
 	}
@@ -210,7 +189,7 @@ export class S8XApi implements BaseDeviceApi {
 	private abortController?: AbortController
 
 	async connectSSE(): Promise<void> {
-		console.log('info', 'Connecting SSE...')
+		this.instance.log('info', 'Connecting SSE...')
 
 		this.abortController = new AbortController()
 		try {
@@ -245,23 +224,30 @@ export class S8XApi implements BaseDeviceApi {
 				const text = decoder.decode(value, {
 					stream: true,
 				})
-				console.log(text)
 				if (text.includes('event: dataChange') || text.includes('event: autodone')) {
 					await this.sync()
 				}
 			}
-		} catch (err: any) {
-			if (err.name === 'AbortError') {
-				console.log('SSE aborted')
-
+		} catch (err: unknown) {
+			if (err instanceof Error && err.name === 'AbortError') {
+				this.instance.log('debug', 'SSE aborted')
 				return
 			}
 
-			console.error('SSE error', err)
+			const errorMessage = isError(err) ? err.message : String(err)
+			this.instance.log('error', `SSE Error: ${errorMessage}`)
+			this.instance.updateStatus(InstanceStatus.ConnectionFailure, '❌ SSE Lost')
 
-			throw err
+			this.instance.log('warn', 'Reconnecting SSE in 5 seconds...')
+			setTimeout(() => {
+				if (!this.abortController) {
+					void this.connectSSE()
+				}
+			}, 5000)
 		} finally {
-			this.abortController = undefined
+			if (this.abortController?.signal.aborted) {
+				this.abortController = undefined
+			}
 		}
 	}
 }

@@ -137,7 +137,20 @@ export type Audio = {
 
 export function getVariableDefinitions(_self: ModuleInstance): CompanionVariableDefinitions {
 	return {
-		keyboard: { name: 'keyboard' },
-		audio: { name: 'audio' },
+		TBAR: { name: 'TBAR' },
+		AuView1_Volume: { name: 'AuView1_Volume' },
+		AuView2_Volume: { name: 'AuView2_Volume' },
+		AuView3_Volume: { name: 'AuView3_Volume' },
+		AuView4_Volume: { name: 'AuView4_Volume' },
+		AuView5_Volume: { name: 'AuView5_Volume' },
+		AuView6_Volume: { name: 'AuView6_Volume' },
+		AuView7_Volume: { name: 'AuView7_Volume' },
+		AuView8_Volume: { name: 'AuView8_Volume' },
+		Earphone_Volume: { name: 'Earphone_Volume' },
+		LINEIN_Volume: { name: 'LINEIN_Volume' },
+		MICorXLR_MIC1Volume: { name: 'MICorXLR_MIC1Volume' },
+		MICorXLR_MIC2Volume: { name: 'MICorXLR_MIC2Volume' },
+		MICorXLR_XLRVolume: { name: 'MICorXLR_XLRVolume' },
+		PGMOUT_Volume: { name: 'PGMOUT_Volume' },
 	}
 }
